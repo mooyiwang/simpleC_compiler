@@ -51,10 +51,12 @@ public class Main {
 
         // 加入用作语义检查的 Observer
         final var semanticAnalyzer = new SemanticAnalyzer();
+        //TODO： lab3 启用
 //        parser.registerObserver(semanticAnalyzer);
 
         // 加入用作 IR 生成的 Observer
         final var irGenerator = new IRGenerator();
+        //TODO： lab3 启用
 //        parser.registerObserver(irGenerator);
 
         // 执行语法解析并在解析过程中依次调用各 Observer
