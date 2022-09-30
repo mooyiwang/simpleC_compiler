@@ -2,12 +2,12 @@ package cn.edu.hitsz.compiler.parser;
 
 import cn.edu.hitsz.compiler.NotImplementedException;
 import cn.edu.hitsz.compiler.lexer.Token;
-import cn.edu.hitsz.compiler.parser.table.LRTable;
-import cn.edu.hitsz.compiler.parser.table.Production;
-import cn.edu.hitsz.compiler.parser.table.Status;
+import cn.edu.hitsz.compiler.parser.table.*;
 import cn.edu.hitsz.compiler.symtab.SymbolTable;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 //TODO: 实验二: 实现 LR 语法分析驱动程序
@@ -23,6 +23,16 @@ import java.util.List;
 public class SyntaxAnalyzer {
     private final SymbolTable symbolTable;
     private final List<ActionObserver> observers = new ArrayList<>();
+    /**
+     * 终结符串， LR表， 当前状态，下一token 状态栈， 符号栈
+     */
+    private List<Token> tokens;
+    private LRTable table;
+    private Status currentStatus;
+    private Token nextToken;
+    private Symbol currentSymbol;
+    private ArrayList<Status> statusStack = new ArrayList<>();
+    private ArrayList<Symbol> symbolStack = new ArrayList<>();
 
 
     public SyntaxAnalyzer(SymbolTable symbolTable) {
@@ -79,14 +89,16 @@ public class SyntaxAnalyzer {
         // 你可以自行选择要如何存储词法单元, 譬如使用迭代器, 或是栈, 或是干脆使用一个 list 全存起来
         // 需要注意的是, 在实现驱动程序的过程中, 你会需要面对只读取一个 token 而不能消耗它的情况,
         // 在自行设计的时候请加以考虑此种情况
-        throw new NotImplementedException();
+        this.tokens = (List<Token>) tokens;
+//        throw new NotImplementedException();
     }
 
     public void loadLRTable(LRTable table) {
         // TODO: 加载 LR 分析表
         // 你可以自行选择要如何使用该表格:
         // 是直接对 LRTable 调用 getAction/getGoto, 抑或是直接将 initStatus 存起来使用
-        throw new NotImplementedException();
+        this.table = table;
+//        throw new NotImplementedException();
     }
 
     public void run() {
@@ -94,6 +106,54 @@ public class SyntaxAnalyzer {
         // 你需要根据上面的输入来实现 LR 语法分析的驱动程序
         // 请分别在遇到 Shift, Reduce, Accept 的时候调用上面的 callWhenInShift, callWhenInReduce, callWhenInAccept
         // 否则用于为实验二打分的产生式输出可能不会正常工作
-        throw new NotImplementedException();
+        currentStatus = table.getInit();
+        currentSymbol = new Symbol(Token.eof());
+        statusStack.add(currentStatus);
+        symbolStack.add(currentSymbol);
+        Iterator<Token> it = tokens.iterator();
+        Action currentAction;
+        Production production;
+        nextToken = it.next();
+        boolean isDone = false;
+
+        while(!isDone){
+            currentAction = table.getAction(currentStatus, nextToken);
+            switch (currentAction.getKind()){
+                case Shift ->{
+                    currentStatus = currentAction.getStatus();
+                    statusStack.add(currentStatus);
+                    currentSymbol = new Symbol(nextToken);
+                    symbolStack.add(currentSymbol);
+                    callWhenInShift(currentStatus, nextToken);
+                    nextToken = it.next();
+                    break;
+                }
+                case Reduce -> {
+                    production = currentAction.getProduction();
+                    for(int i=0; i<production.body().size(); i++){
+                        statusStack.remove(statusStack.size()-1);
+                        symbolStack.remove(symbolStack.size()-1);
+                    }
+                    currentSymbol = new Symbol(production.head());
+                    symbolStack.add(currentSymbol);
+                    currentStatus = statusStack.get(statusStack.size()-1);
+//                    currentStatus = table.getGoto(currentStatus, currentSymbol.nonTerminal);
+                    currentStatus = table.getGoto(currentStatus, production.head());
+                    statusStack.add(currentStatus);
+                    callWhenInReduce(currentStatus, production);
+
+                }
+                case Accept -> {
+                    List<Term> terms = new ArrayList<>();
+                    terms.add(new NonTerminal("S_list"));
+                    callWhenInReduce(currentStatus, new Production(1, new NonTerminal("P"), terms));
+                    isDone = true;
+                    break;
+                }
+                default -> {break;}
+            }
+        }
+
+//        throw new NotImplementedException();
     }
 }
