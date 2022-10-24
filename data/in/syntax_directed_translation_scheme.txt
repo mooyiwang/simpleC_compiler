@@ -1,0 +1,15 @@
+P -> S_list;
+S_list -> S Semicolon S_list;
+S_list -> S Semicolon;
+S -> D id;                  {p=lookup(id.name); if p then update(id.name, D.type)}
+D -> int;                   {D.type = int}
+S -> id = E;                {p=lookup(id.name); if p then gencode(MOV, id, E.addr)}
+S -> return E;              {gencode(RET, E.addr)}
+E -> E + A;                 {E.addr = newtemp(); gencode(ADD, E.addr, E'.addr, A.addr)}
+E -> E - A;                 {E.addr = newtemp(); gencode(SUB, E.addr, E'.addr, A.addr)}
+E -> A;                     {E.addr = A.addr}
+A -> A * B;                 {E.addr = newtemp(); gencode(MUL, E.addr, E'.addr, A.addr)}
+A -> B;                     {A.addr = B.addr}
+B -> ( E );                 {B.addr = E.addr}
+B -> id;                    {p=lookup(id.name); if p then B.addr = id}
+B -> IntConst;              {B.addr = IntConst.lexcal}
