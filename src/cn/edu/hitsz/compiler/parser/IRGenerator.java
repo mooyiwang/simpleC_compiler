@@ -14,7 +14,7 @@ import cn.edu.hitsz.compiler.utils.FileUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: 实验三: 实现 IR 生成
+//实验三: 实现 IR 生成
 
 /**
  *
@@ -33,7 +33,7 @@ public class IRGenerator implements ActionObserver {
 
     @Override
     public void whenShift(Status currentStatus, Token currentToken) {
-        // TODO
+        //
         String name = currentToken.getText();
         String type = currentToken.getKind().getIdentifier();
         if("IntConst".equals(type)){
@@ -50,7 +50,7 @@ public class IRGenerator implements ActionObserver {
 
     @Override
     public void whenReduce(Status currentStatus, Production production) {
-        // TODO
+        //
         switch (production.index()){
             case 6 ->{ //S -> id = E;
                 IRValue from = valStack.get(valStack.size()-1);
@@ -141,19 +141,19 @@ public class IRGenerator implements ActionObserver {
 
     @Override
     public void whenAccept(Status currentStatus) {
-        // TODO
+        //
 //        throw new NotImplementedException();
     }
 
     @Override
     public void setSymbolTable(SymbolTable table) {
-        // TODO
+        //
         this.table = table;
 //        throw new NotImplementedException();
     }
 
     public List<Instruction> getIR() {
-        // TODO
+        //
         return instructions;
 //        throw new NotImplementedException();
     }
